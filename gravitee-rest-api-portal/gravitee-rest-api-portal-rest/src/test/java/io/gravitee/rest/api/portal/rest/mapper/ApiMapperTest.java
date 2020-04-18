@@ -20,33 +20,32 @@ import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.ViewEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.portal.rest.model.Api;
-import io.gravitee.rest.api.portal.rest.model.ApiLinks;
-import io.gravitee.rest.api.portal.rest.model.RatingSummary;
-import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.ViewService;
-import io.gravitee.rest.api.service.exceptions.ViewNotFoundException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import javax.ws.rs.core.UriBuilder;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-
+import static org.mockito.Mockito.when;
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
@@ -68,6 +67,8 @@ public class ApiMapperTest {
     private static final String API_VIEW = "my-api-view";
     private static final String API_VIEW_HIDDEN = "my-api-view-hidden";
 
+    private static final String API_BASE_URL = "http://foo/bar";
+
     private ApiEntity apiEntity;
 
     @Mock
@@ -81,6 +82,9 @@ public class ApiMapperTest {
 
     @Mock
     private ViewService viewService;
+
+    @Mock
+    private ViewMapper viewMapper;
 
     @InjectMocks
     private ApiMapper apiMapper;
@@ -96,8 +100,18 @@ public class ApiMapperTest {
         apiEntity.setDescription(API_DESCRIPTION);
         apiEntity.setName(API_NAME);
         apiEntity.setLabels(new ArrayList<>(Arrays.asList(API_LABEL)));
-        doThrow(ViewNotFoundException.class).when(viewService).findNotHiddenById(API_VIEW_HIDDEN);
+        
+        ViewEntity view = new ViewEntity();
+        view.setHidden(false);
+        view.setId(API_VIEW);
+        doReturn(view).when(viewService).findById(API_VIEW);
+        
+        ViewEntity hiddenView = new ViewEntity();
+        hiddenView.setHidden(false);
+        hiddenView.setId(API_VIEW);
+        doReturn(hiddenView).when(viewService).findById(API_VIEW_HIDDEN);
 
+        when(viewMapper.convert(any(),  any())).thenCallRealMethod();
         apiEntity.setViews(new HashSet<>(Arrays.asList(API_VIEW, API_VIEW_HIDDEN)));
 
         apiEntity.setEntrypoints(
@@ -129,7 +143,7 @@ public class ApiMapperTest {
         apiEntity.setUpdatedAt(nowDate);
 
         // Test
-        Api responseApi = apiMapper.convert(apiEntity);
+        Api responseApi = apiMapper.convert(apiEntity, UriBuilder.fromPath(API_BASE_URL));
         assertNotNull(responseApi);
 
         assertNull(responseApi.getPages());
@@ -159,15 +173,17 @@ public class ApiMapperTest {
 
         assertEquals(now.toEpochMilli(), responseApi.getUpdatedAt().toInstant().toEpochMilli());
 
-        List<String> views = responseApi.getViews();
+        List<View> views = responseApi.getViews();
         assertNotNull(views);
-        assertTrue(views.contains(API_VIEW));
+        assertEquals(API_VIEW, views.get(0).getId());
 
         RatingSummary ratingSummary = responseApi.getRatingSummary();
         assertNotNull(ratingSummary);
         assertEquals(Double.valueOf(4.2), ratingSummary.getAverage());
         assertEquals(BigDecimal.valueOf(10), ratingSummary.getCount());
 
+        ApiLinks links = responseApi.getLinks();
+        testLinks(API_BASE_URL + "/environments/DEFAULT/apis/" + API_ID, links);
     }
 
     @Test
@@ -182,13 +198,12 @@ public class ApiMapperTest {
 
         doReturn(false).when(ratingService).isEnabled();
 
-        apiEntity.setViews(new HashSet<>(Arrays.asList(API_VIEW, API_VIEW_HIDDEN)));
         doReturn(false).when(parameterService).findAsBoolean(Key.PORTAL_APIS_VIEW_ENABLED);
 
         apiEntity.setLifecycleState(ApiLifecycleState.CREATED);
 
         // Test
-        Api responseApi = apiMapper.convert(apiEntity);
+        Api responseApi = apiMapper.convert(apiEntity, UriBuilder.fromPath(API_BASE_URL));
         assertNotNull(responseApi);
 
         assertNull(responseApi.getPages());
@@ -209,21 +224,25 @@ public class ApiMapperTest {
 
         assertNull(responseApi.getOwner());
 
-        List<String> views = responseApi.getViews();
+        List<View> views = responseApi.getViews();
         assertNotNull(views);
         assertEquals(0, views.size());
 
         RatingSummary ratingSummary = responseApi.getRatingSummary();
         assertNull(ratingSummary);
 
+        ApiLinks links = responseApi.getLinks();
+        testLinks(API_BASE_URL + "/environments/DEFAULT/apis/" + API_ID, links);
     }
 
     @Test
     public void testApiLinks() {
         String basePath = "/" + API;
-
         ApiLinks links = apiMapper.computeApiLinks(basePath);
-
+        testLinks(basePath, links);
+    }
+    
+    private void testLinks(String basePath, ApiLinks links) {
         assertNotNull(links);
 
         assertEquals(basePath, links.getSelf());
@@ -234,4 +253,5 @@ public class ApiMapperTest {
         assertEquals(basePath + "/plans", links.getPlans());
         assertEquals(basePath + "/ratings", links.getRatings());
     }
+    
 }

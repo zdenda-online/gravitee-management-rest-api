@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 
@@ -106,9 +107,9 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
         
         doReturn(false).when(ratingService).isEnabled();
         
-        doReturn(new Api().name("A").id("A")).when(apiMapper).convert(publishedApi);
-        doReturn(new Api().name("B").id("B")).when(apiMapper).convert(unpublishedApi);
-        doReturn(new Api().name("C").id("C")).when(apiMapper).convert(anotherPublishedApi);
+        doReturn(new Api().name("A").id("A")).when(apiMapper).convert(eq(publishedApi), any());
+        doReturn(new Api().name("B").id("B")).when(apiMapper).convert(eq(unpublishedApi), any());
+        doReturn(new Api().name("C").id("C")).when(apiMapper).convert(eq(anotherPublishedApi), any());
 
     }
     

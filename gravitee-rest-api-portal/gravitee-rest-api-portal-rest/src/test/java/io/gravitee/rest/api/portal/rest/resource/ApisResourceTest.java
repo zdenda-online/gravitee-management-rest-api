@@ -92,12 +92,12 @@ public class ApisResourceTest extends AbstractResourceTest {
 
         doReturn(false).when(ratingService).isEnabled();
 
-        doReturn(new Api().name("1").id("1")).when(apiMapper).convert(publishedApi1);
-        doReturn(new Api().name("2").id("2")).when(apiMapper).convert(unpublishedApi);
-        doReturn(new Api().name("3").id("3")).when(apiMapper).convert(publishedApi2);
-        doReturn(new Api().name("4").id("4")).when(apiMapper).convert(publishedApi3);
-        doReturn(new Api().name("5").id("5")).when(apiMapper).convert(publishedApi4);
-        doReturn(new Api().name("6").id("6")).when(apiMapper).convert(publishedApi5);
+        doReturn(new Api().name("1").id("1")).when(apiMapper).convert(eq(publishedApi1), any());
+        doReturn(new Api().name("2").id("2")).when(apiMapper).convert(eq(unpublishedApi), any());
+        doReturn(new Api().name("3").id("3")).when(apiMapper).convert(eq(publishedApi2), any());
+        doReturn(new Api().name("4").id("4")).when(apiMapper).convert(eq(publishedApi3), any());
+        doReturn(new Api().name("5").id("5")).when(apiMapper).convert(eq(publishedApi4), any());
+        doReturn(new Api().name("6").id("6")).when(apiMapper).convert(eq(publishedApi5), any());
 
     }
 
@@ -116,18 +116,8 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals("name", query.getName());
         assertEquals("tag", query.getTag());
 
-        ArgumentCaptor<String> basePathCaptor = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(apiMapper, Mockito.times(5)).computeApiLinks(basePathCaptor.capture());
-        final String expectedBasePath = target().getUri().toString();
-        final List<String> bastPathList = basePathCaptor.getAllValues();
-        assertTrue(bastPathList.contains(expectedBasePath + "/1"));
-        assertTrue(bastPathList.contains(expectedBasePath + "/3"));
-        assertTrue(bastPathList.contains(expectedBasePath + "/4"));
-        assertTrue(bastPathList.contains(expectedBasePath + "/5"));
-        assertTrue(bastPathList.contains(expectedBasePath + "/6"));
-
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(5)).convert(apiEntityCaptor.capture());
+        Mockito.verify(apiMapper, Mockito.times(5)).convert(apiEntityCaptor.capture(), any());
         final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
                 .collect(Collectors.toList());
         assertEquals(5, allNameValues.size());
@@ -296,7 +286,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(5)).convert(apiEntityCaptor.capture());
+        Mockito.verify(apiMapper, Mockito.times(5)).convert(apiEntityCaptor.capture(), any());
         final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
                 .collect(Collectors.toList());
         assertEquals(5, allNameValues.size());
@@ -315,7 +305,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(5)).convert(apiEntityCaptor.capture());
+        Mockito.verify(apiMapper, Mockito.times(5)).convert(apiEntityCaptor.capture(), any());
         final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
                 .collect(Collectors.toList());
         assertEquals(5, allNameValues.size());
@@ -331,7 +321,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(5)).convert(apiEntityCaptor.capture());
+        Mockito.verify(apiMapper, Mockito.times(5)).convert(apiEntityCaptor.capture(), any());
         final List<String> allNameValues = apiEntityCaptor.getAllValues().stream().map(a -> a.getName())
                 .collect(Collectors.toList());
         assertEquals(5, allNameValues.size());
@@ -406,14 +396,8 @@ public class ApisResourceTest extends AbstractResourceTest {
         assertNull(query.getName());
         assertNull(query.getTag());
 
-        ArgumentCaptor<String> basePathCaptor = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).computeApiLinks(basePathCaptor.capture());
-        final String expectedBasePath = target().getUri().toString();
-        final List<String> bastPathList = basePathCaptor.getAllValues();
-        assertTrue(bastPathList.contains(expectedBasePath + "/3"));
-
         ArgumentCaptor<ApiEntity> apiEntityCaptor = ArgumentCaptor.forClass(ApiEntity.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).convert(apiEntityCaptor.capture());
+        Mockito.verify(apiMapper, Mockito.times(1)).convert(apiEntityCaptor.capture(), any());
         assertEquals("3", apiEntityCaptor.getValue().getName());
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);

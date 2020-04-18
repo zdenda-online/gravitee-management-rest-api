@@ -24,12 +24,11 @@ import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
 import io.gravitee.rest.api.portal.rest.model.*;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import javax.ws.rs.core.Response;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -72,7 +71,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         Api api = new Api();
         api.setId(API);
-        doReturn(api).when(apiMapper).convert(any());
+        doReturn(api).when(apiMapper).convert(any(), any());
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new Plan()).when(planMapper).convert(any(), eq(USER_NAME));
         doReturn(new Rating()).when(ratingMapper).convert(any(), any());
@@ -86,14 +85,6 @@ public class ApiResourceTest extends AbstractResourceTest {
 
         final Api responseApi = response.readEntity(Api.class);
         assertNotNull(responseApi);
-
-        ArgumentCaptor<String> ac = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).computeApiLinks(ac.capture());
-
-        String expectedBasePath = target(API).getUriBuilder().build().toString();
-        List<String> bastPathList = ac.getAllValues();
-        assertTrue(bastPathList.contains(expectedBasePath));
-
     }
 
     @Test

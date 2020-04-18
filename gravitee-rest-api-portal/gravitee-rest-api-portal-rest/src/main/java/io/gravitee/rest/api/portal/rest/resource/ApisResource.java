@@ -29,7 +29,6 @@ import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.CategoryApiQuery;
 import io.gravitee.rest.api.portal.rest.resource.param.ApisParam;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
-import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -79,8 +78,7 @@ public class ApisResource extends AbstractResource {
         FilteredApi filteredApis = filterByCategory(apis, apisParam.getCategory(), apisParam.getExcludedCategory());
         
         List<Api> apisList= filteredApis.getFilteredApis().stream()
-                .map(apiMapper::convert)
-                .map(this::addApiLinks)
+                .map(apiEntity -> apiMapper.convert(apiEntity, uriInfo.getBaseUriBuilder()))
                 .collect(Collectors.toList());
 
         return createListResponse(apisList, paginationParam, filteredApis.getMetadata());
@@ -98,8 +96,9 @@ public class ApisResource extends AbstractResource {
         filters.put("api", apis.stream().map(ApiEntity::getId).collect(Collectors.toSet()));
 
         try {
-            List<Api> apisList = apiService.search(query, filters).stream().map(apiMapper::convert)
-                    .map(this::addApiLinks).collect(Collectors.toList());
+            List<Api> apisList = apiService.search(query, filters).stream()
+                    .map(apiEntity -> apiMapper.convert(apiEntity, uriInfo.getBaseUriBuilder()))
+                    .collect(Collectors.toList());
             return createListResponse(apisList, paginationParam);
         } catch (TechnicalException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e).build();
@@ -261,11 +260,6 @@ public class ApisResource extends AbstractResource {
                 .sorted((a1,a2) -> String.CASE_INSENSITIVE_ORDER.compare(a1.getName(), a2.getName()))
                 .collect(Collectors.toList())
                 , null);
-    }
-
-    private Api addApiLinks(Api api) {
-        return api.links(
-                apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId())));
     }
 
     @Path("{apiId}")

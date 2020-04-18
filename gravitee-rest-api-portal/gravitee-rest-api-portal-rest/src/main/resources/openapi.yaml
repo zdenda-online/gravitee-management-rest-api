@@ -2885,7 +2885,7 @@ components:
           description: List of views this API belongs to.
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/View'
         rating_summary:
           $ref: '#/components/schemas/RatingSummary'
         _links:

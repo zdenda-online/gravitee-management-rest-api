@@ -27,12 +27,14 @@ import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.ApiLinks;
 import io.gravitee.rest.api.portal.rest.model.RatingSummary;
 import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.ViewService;
-import io.gravitee.rest.api.service.exceptions.ViewNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import javax.ws.rs.core.UriBuilder;
 
 import java.math.BigDecimal;
 import java.time.ZoneOffset;
@@ -51,12 +53,15 @@ public class ApiMapper {
     private RatingService ratingService;
 
     @Autowired
+    private ViewMapper viewMapper;
+
+    @Autowired
     private ViewService viewService;
 
     @Autowired
     private ParameterService parameterService;
 
-    public Api convert(ApiEntity api) {
+    public Api convert(ApiEntity api, UriBuilder baseUriBuilder) {
         final Api apiItem = new Api();
         apiItem.setDescription(api.getDescription());
 
@@ -81,6 +86,8 @@ public class ApiMapper {
             apiItem.setLabels(new ArrayList<>());
         }
 
+        apiItem.setLinks(this.computeApiLinks(PortalApiLinkHelper.apisURL(baseUriBuilder.clone(), api.getId())));
+        
         apiItem.setName(api.getName());
 
         PrimaryOwnerEntity primaryOwner = api.getPrimaryOwner();
@@ -109,14 +116,11 @@ public class ApiMapper {
 
         boolean isViewModeEnabled = this.parameterService.findAsBoolean(Key.PORTAL_APIS_VIEW_ENABLED);
         if (isViewModeEnabled && api.getViews() != null) {
-            apiItem.setViews(api.getViews().stream().filter(viewId -> {
-                try {
-                    viewService.findNotHiddenById(viewId);
-                    return true;
-                } catch (ViewNotFoundException v) {
-                    return false;
-                }
-            }).collect(Collectors.toList()));
+            apiItem.setViews(api.getViews().stream()
+                    .map(viewService::findById)
+                    .filter(view -> !view.isHidden())
+                    .map(view -> viewMapper.convert(view, baseUriBuilder.clone()))
+                    .collect(Collectors.toList()));
         } else {
             apiItem.setViews(new ArrayList<>());
         }

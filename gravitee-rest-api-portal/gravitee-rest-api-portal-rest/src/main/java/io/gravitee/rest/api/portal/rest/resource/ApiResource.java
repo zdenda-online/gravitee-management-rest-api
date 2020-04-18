@@ -25,7 +25,6 @@ import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
 import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
-import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.PlanService;
@@ -74,7 +73,7 @@ public class ApiResource extends AbstractResource {
         if (userApis.stream().anyMatch(a -> a.getId().equals(apiId))) {
 
             ApiEntity apiEntity = apiService.findById(apiId);
-            Api api = apiMapper.convert(apiEntity);
+            Api api = apiMapper.convert(apiEntity, uriInfo.getBaseUriBuilder());
 
             if (include.contains(INCLUDE_PAGES)) {
                 List<Page> pages = pageService.search(new PageQuery.Builder().api(apiId).build()).stream()
@@ -92,8 +91,6 @@ public class ApiResource extends AbstractResource {
                         .collect(Collectors.toList());
                 api.setPlans(plans);
             }
-
-            api.links(apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId())));
 
             return Response.ok(api).build();
         }

@@ -119,7 +119,7 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
         doReturn(new HashSet<PlanEntity>(Arrays.asList(plan1, plan2, plan3))).when(planService).findByApi(API);        
         
         
-        doReturn(new Api()).when(apiMapper).convert(any());
+        doReturn(new Api()).when(apiMapper).convert(any(), any());
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new Plan()).when(planMapper).convert(any(), eq(USER_NAME));
 
