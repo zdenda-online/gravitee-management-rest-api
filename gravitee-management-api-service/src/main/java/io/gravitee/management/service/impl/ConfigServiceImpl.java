@@ -160,7 +160,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
 
         final PortalConfigEntity.ReCaptcha reCaptcha = new PortalConfigEntity.ReCaptcha();
         reCaptcha.setEnabled(reCaptchaService.isEnabled());
-        reCaptcha.setPublicKey(reCaptchaService.getPublicKey());
+        reCaptcha.setSiteKey(reCaptchaService.getSiteKey());
         portalConfigEntity.setReCaptcha(reCaptcha);
     }
 

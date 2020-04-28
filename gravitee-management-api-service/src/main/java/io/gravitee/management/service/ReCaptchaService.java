@@ -21,6 +21,6 @@ public interface ReCaptchaService {
 
     boolean isValid(String token);
     boolean isEnabled();
-    String getPublicKey();
+    String getSiteKey();
 
 }

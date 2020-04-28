@@ -387,3 +387,11 @@ notifiers:
 #    whitelist:
 #      - https://whitelist.domain1.com
 #      - https://restricted.domain2.com/whitelisted/path
+
+
+#reCaptcha:
+#  enabled: false
+#  siteKey:
+#  secretKey:
+#  minScore: 0.5
+#  reCaptcha: https://www.google.com/recaptcha/api/siteverify

@@ -101,7 +101,7 @@ public enum Key {
     MAINTENANCE_MODE_ENABLED("maintenance.enabled", "false"),
 
     RECAPTCHA_ENABLED("reCaptcha.enabled","false"),
-    RECAPTCHA_PUBLIC_KEY("reCaptcha.publicKey");;
+    RECAPTCHA_SITE_KEY("reCaptcha.siteKey");;
 
     String key;
     String defaultValue;

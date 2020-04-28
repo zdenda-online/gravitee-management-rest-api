@@ -1095,15 +1095,15 @@ public class PortalConfigEntity {
             this.enabled = enabled;
         }
 
-        @ParameterKey(Key.RECAPTCHA_PUBLIC_KEY)
-        private String publicKey;
+        @ParameterKey(Key.RECAPTCHA_SITE_KEY)
+        private String siteKey;
 
-        public String getPublicKey() {
-            return publicKey;
+        public String getSiteKey() {
+            return siteKey;
         }
 
-        public void setPublicKey(String publicKey) {
-            this.publicKey = publicKey;
+        public void setSiteKey(String siteKey) {
+            this.siteKey = siteKey;
         }
     }
 }
